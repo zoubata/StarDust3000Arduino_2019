@@ -9,9 +9,10 @@
 //        rosrun rosserial_python serial_node.py /dev/ttyS4 & 
 //        rosrun rosserial_python serial_node.py /dev/ttyS3   _baud:=57600 & 
 rosrun rosserial_python serial_node.py /dev/ttyS23   _baud:=57600 &
+rosrun rosserial_python serial_node.py /dev/ttyAMA0   _baud:=115200 &
 rostopic list
 rostopic info /servo/F
-rostopic pub servo/F std_msgs/UInt16 --once -- 80
+rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 80
 
 // rostopic pub motor2/A std_msgs/Int16 --once    10 
 // rostopic pub motor2/B std_msgs/Int16 --once    180
@@ -38,7 +39,7 @@ rostopic pub /servo/E std_msgs/UInt16 --once     220
 #include <assert.h>
 #include <ZServoPCA9685.h> 
 #include <ZPCA9685.h>
-
+#include <ZSwitchs.h>
 
 #if defined(BOARD_ID_Pilo)
 #include <Wire.h>
@@ -131,8 +132,8 @@ void 	test_servo()
     servo_cmd[i].write(90);
 */
 }
-#define I2CADDR_MOTOR2_1 0x20
-#define I2CADDR_MOTOR2_2 0x40
+#define I2CADDR_MOTOR2_1 0x21
+#define I2CADDR_MOTOR2_2 0x41
 #define I2CADDR_SERVO    0x43
 
 
@@ -156,8 +157,62 @@ void setupIntPriority()
 }
 
 
+///////////////////////////////////////////////// LCD ///////////////////////////////
+
+/*
+#define CLK P_COM1.Pin.PIN16
+#define DIO P_COM1.Pin.PIN18  
+#define GND P_COM1.Pin.PIN04
+#define VCC P_COM1.Pin.PIN02
 
 
+int num, bsend, i;
+uint8_t WriteOK = 0xFB;
+int incomingByte = 0;
+byte buff_header[5];
+byte data[250];
+LED4x7_t led;
+
+
+TM1637Display display(CLK, DIO);
+*/
+
+#define MyWireLcd P_COM1.wire
+#include <LiquidCrystal_I2C.h>
+#include <std_msgs/String.h>
+LiquidCrystal_I2C lcd(MyWireLcd,63,16,2);  // set the LCD address to 0x27 for a 16 chars and 2 line display
+
+ 
+ void message1( const std_msgs::String& toggle_msg){
+ 
+  lcd.setCursor(0,0);
+  lcd.print(toggle_msg.data);    
+   }
+   
+void message2( const std_msgs::String& toggle_msg){
+ 
+  lcd.setCursor(0,1);
+  lcd.print(toggle_msg.data);    
+   }
+   
+ ros::Subscriber<std_msgs::String> msg1("/r1/lcd/line1", &message1 );
+ ros::Subscriber<std_msgs::String> msg2("/r1/lcd/line2", &message2 );
+ 
+void setupLcd()
+{
+  lcd.init();                      // initialize the lcd 
+  // Print a message to the LCD.
+  lcd.backlight();
+  lcd.setCursor(0,0);
+  lcd.print("  Hello, world! ");
+  lcd.setCursor(0,1);
+  lcd.print(" StartDust 3000 ");
+  lcd.setCursor(0,0);
+  nh.subscribe(msg1);
+  nh.subscribe(msg2);
+}
+
+///////////////////////////////////////////////// LCD ///////////////////////////////
 
 
 #include <std_msgs/Int32.h>
@@ -173,10 +228,10 @@ ros::Publisher pub_usartrx("usart/rx", &usarttx_msg);
 
 std_msgs::Int16 debug1_msg;
 std_msgs::Int16 debug2_msg;
-std_msgs::Int16 debug3_msg;
+std_msgs::Int16 vbat_msg;
 ros::Publisher pub_debug1("debug/1", &debug1_msg);
 ros::Publisher pub_debug2("debug/2", &debug2_msg);
-ros::Publisher pub_debug3("debug/3", &debug3_msg);
+ros::Publisher pub_vbat("/r1/pilo/VbatmV", &vbat_msg);
 
 void setup_time()
 {
@@ -187,7 +242,7 @@ nh.advertise(pub_usartrx);
 
 nh.advertise(pub_debug1);
 nh.advertise(pub_debug2);
-nh.advertise(pub_debug3);
+nh.advertise(pub_vbat);
 
 pinMode(LED_TOP, OUTPUT);
 digitalWrite(LED_TOP, HIGH);
@@ -224,43 +279,85 @@ digitalWrite(LED_TOP, toggle);
    
     pub_debug1.publish(&debug1_msg);
      pub_debug2.publish(&debug2_msg);
-      pub_debug3.publish(&debug3_msg);
+     
+     
+     
+     float Vbat=0;
+for(int i=0;i<5;i++)
+Vbat+=analogRead(P_ANA1.Pin.IO4);
+Vbat=Vbat*5.0/4096/5*11.5;//vbat
+vbat_msg.data=Vbat*1000;
+
+      pub_vbat.publish(&vbat_msg);
  }
   
   }
 
-
-
-
+ZSwitchs switches;
 
 
 void setup() {
+
+
+MyWireLcd.begin();
+MyWireLcd.setClock(100000);
+
+if (0)// I2C LCD
+{
+MySerial.begin(57600);  //115200 //9600
+//	MySerial.println("MyWireLcd scan");
+
+	volatile int ip = scan(MySerial, MyWireLcd);
+	while (ip = scanNext(MySerial, MyWireLcd) != 0);
+        
+        
+}
+
+
+
 	pinMode(LED_BOTTOM, OUTPUT);
         digitalWrite(LED_BOTTOM, HIGH);
 
 setupIntPriority();
 
-
-if(!( WireTest( WireMotor2, I2CADDR_MOTOR2_2) && WireTest( WireMotor2, I2CADDR_SERVO) && WireTest( WireMotor2, I2CADDR_MOTOR2_2)))
-{
-//assert(1==0);
-};//skip if wire issue
+boolean i2cok=true;
 
 WireMotor2.begin();
 	WireMotor2.setClock(10000);
 
-if(!( WireTest( WireMotor2, I2CADDR_MOTOR2_2) && WireTest( WireMotor2, I2CADDR_SERVO) && WireTest( WireMotor2, I2CADDR_MOTOR2_2)))
-{assert(1==0);};//skip if wire issue
-        
-if (0)
+//0x21 41 43 70
+if (0)// I2C SERVO/MOTOR
 {
 MySerial.begin(57600);  //115200 //9600
 	MySerial.println("Setup");
 
 	volatile int ip = scan(MySerial, WireMotor2);
 	while (ip = scanNext(MySerial, WireMotor2) != 0);
+        ip=ip;
 }
 
+  if( !WireMotor2.testLine( ))
+{
+     
+    lcd.setCursor(0,1);
+    lcd.print("I2C WireMotor2 FAIL");
+ assert(1==0);
+}
+
+if(!( WireTest( WireMotor2, I2CADDR_MOTOR2_2) && WireTest( WireMotor2, I2CADDR_SERVO) && WireTest( WireMotor2, I2CADDR_MOTOR2_2)))
+{
+lcd.init();
+  // Print a message to the LCD.
+  lcd.backlight();
+  lcd.setCursor(0,0);
+  lcd.print("  I2C SERVO FAIL  ");
+i2cok=false;
+wireResetAllDevices(WireMotor2);
+assert(1==0);
+
+
+};//skip if wire issue
+   
 wireResetAllDevices(WireMotor2);
 
     //card_motor2.begin(&Wire,0x43);
@@ -268,8 +365,53 @@ wireResetAllDevices(WireMotor2);
     card_motor2.begin(&(WireMotor2),I2CADDR_MOTOR2_1,I2CADDR_MOTOR2_2);
         
   nh.initNode(); 
+  setupLcd();
+  if(i2cok  )
+  {
+    lcd.setCursor(0,0);
+    lcd.print("  I2C SERVO OK  ");
+  }
+  else
+  {
+    lcd.setCursor(0,0);
+    lcd.print("  I2C SERVO FAIL  ");
+  }
+  
+
+if (!card_servos.test())
+        {
+         lcd.setCursor(0,0);
+    lcd.print("     SERVO FAIL  ");
+     assert(1==0);
+        }
  // nh.advertise(rosdebug);
 setup_time();
+
+switches.setup(&nh,"/r1/pilo/switches");//Uint32
+switches.attach(P_ANA1.Pin.IO0);//bit 0 : bleu/noir_rouge : ventouse gauche enforcé
+switches.attach(P_ANA1.Pin.IO1);//bit 1 : noir_bleu : ventouse centre enforcé
+switches.attach(P_ANA1.Pin.IO2);//bit 2 : noir_vert : ventouse droite enforcé
+switches.attach(P_ANA1.Pin.IO3);//NC
+switches.attach(-1);//bit 4 : NC (blanc? pond div Vbat)
+switches.attach(P_ANA1.Pin.IO5);//bit 5 : bleu? = gnd_power
+switches.attach(P_ANA1.Pin.IO6);//bit 6 : vert(gnd_bat): bouton arret d'urgence no percuté(robot alimenté)
+switches.attach(P_ANA1.Pin.IO7);//bit 7 : jaune: tirette de demarrage presente
+
+
+switches.attach(P_COM3.Pin.IO0);//bit 9  : noir/bleu_rouge: palet gauche present
+switches.attach(P_COM3.Pin.IO1);//bit 10 : fil noir_bleu: palet centre present
+switches.attach(P_COM3.Pin.IO5);//bit 11 : fil noir_vert: palet droite present
+analogReadResolution(12);
+/*
+ rostopic echo /r1/pilo/switches
+data: 1992
+data: 1864
+data: 1992
+data: 1996
+
+*/
+ 
+
 
   card_motor2.setup(&nh,"/r1/motor2/0",0);
   card_motor2.setup(&nh,"/r1/motor2/2",2);
@@ -358,6 +500,19 @@ card_servos.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
     
    uint8_t status=LOW;
 
+
+servo_cmdE.write(90);servo_cmdE.write(90);
+     lcd.setCursor(0,0);
+    lcd.print("    WAIT ROS   ");
+    
+/*
+if (!card_motor2.test())
+        {nh.logerror( "Pilo : card_motor2  not working" );
+        
+            lcd.setCursor(0,1);
+     assert(1==0);
+    }
+    */
    //wait until you are actually connected
     while (!nh.connected())
     {
@@ -365,19 +520,38 @@ card_servos.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
       delay(50);
           status=(status==LOW)?HIGH:LOW;//toggle
       digitalWrite(LED_BOTTOM, status);
+   //    nh.loginfo( "Pilo : connecting" );
   
     }
+    
+    lcd.setCursor(0,0);
+    lcd.print("    ROS OK    ");
     
     
 if( !WireMotor2.testLine( ))
 {
   nh.logerror( "Pilo : WireMotor2  not working" );
+     
+    lcd.setCursor(0,0);
+    lcd.print("  I2C SERVO FAIL  ");
+ assert(1==0);
 }
+/* to late to do check, ros has taken the hand on IT
 if (!card_servos.test())
-        {nh.logerror( "Pilo : card_servos  not working" );}
+        {
+        nh.logerror( "Pilo : card_servos  not working" );
+         lcd.setCursor(0,0);
+    lcd.print("     SERVO FAIL  ");
+     assert(1==0);
+        }
 if (!card_motor2.test())
-        {nh.logerror( "Pilo : card_motor2  not working" );}
-
+        {nh.logerror( "Pilo : card_motor2  not working" );
+        
+            lcd.setCursor(0,0);
+    lcd.print("     MOTOR FAIL  ");
+     assert(1==0);
+    }
+*/
 
 
 /*
@@ -414,6 +588,7 @@ card_servos.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
 /*
 str_msg.data = "setup end";
 rosdebug.publish( &str_msg );*/
+ lcd.print("    READY    ");
 }
 
 void loopservos() {
@@ -449,4 +624,9 @@ void loop()
   //  nh.loginfo("loop()");
    delay(15);
   loop_time();
+  
+  switches.loop();
+
+
+
 }

@@ -323,7 +323,7 @@ digitalWrite(LED_TOP, LOW);
  
  
  int timetime=0;// refresh rate
-int time1=0;//load
+int time1=micros();//load
 int dmaxros=0;//max load
 char toggle=LOW;
 void loop_time()
@@ -400,9 +400,9 @@ cmd2.setup(&nh,	M2_TOPIC_PWM,M2_TOPIC_SPEED);
  cmd2.getEncoder()->setup( &nh,	M2_TOPIC_ENC);
  cmd3.getEncoder()->setup( &nh,	M3_TOPIC_ENC);
  #endif
- cmd1.setRefreshRateUs(10000);
- cmd2.setRefreshRateUs(10000);
- cmd3.setRefreshRateUs(10000);
+ cmd1.setRefreshRateUs(20000);
+ cmd2.setRefreshRateUs(20000);
+ cmd3.setRefreshRateUs(20000);
  
  
   cmd4.setPin(M4_CA, M4_CB, M4_MP, M4_MM,M4_EN);
@@ -584,6 +584,7 @@ void bip(uint32_t bip)
   pinMode(HP2, OUTPUT);        
   for(int i=0;i<s;i++)
   {
+  wdt_clr();
       if ((((bip>>i)&1)==1))
       {   
           digitalWrite(HP1, LOW); 
@@ -598,8 +599,14 @@ void bip(uint32_t bip)
   pinMode(HP1, INPUT);	pinMode(HP2, INPUT);        
 }
 void init_debug();
+
+
+
 void setup()
 {
+wdt_clr();
+ WDT_on(  );
+
 init_debug();
 	pinMode(LED_BOTTOM, OUTPUT);
         digitalWrite(LED_BOTTOM, LOW);
@@ -627,6 +634,12 @@ bip(BIP_LONG_OK);
 assert(r);
 
 //loopDEBUGMOTOR();
+SUPC->BODCORE.bit.ENABLE=0;
+SUPC->BODCORE.bit.ACTION= SUPC_BODVDD_ACTION_RESET | SUPC_BODCORE_HYST |  SUPC_BODCORE_LEVEL(40);
+SUPC->BODCORE.bit.ENABLE=1;
+SUPC->BODVDD.bit.ENABLE=0;
+SUPC->BODVDD.bit.ACTION= SUPC_BODVDD_ACTION_RESET | SUPC_BODVDD_HYST |  SUPC_BODVDD_LEVEL(7);
+SUPC->BODVDD.bit.ENABLE=1;
 
 nh.initNode(); 
    //wait until you are actually connected
@@ -653,37 +666,42 @@ setupIntPriority();
   pinMode(M4_EN, OUTPUT); digitalWrite(M4_EN, HIGH); 
 
 */
+wdt_clr();
 cmd1.setPWMValue(0XFFFF);//vanne 1
 cmd2.setPWMValue(0XFFFF);//vanne 1
 cmd3.setPWMValue(0XFFFF);//vanne 1
-delay(200);
+delay(600);wdt_clr();
 cmd1.stop();
 cmd2.stop();
 cmd3.stop();
-delay(500);
+delay(500);wdt_clr();
 
+/*while(1)
+{*/
+
+delay(500);wdt_clr();
 cmd5.setPWMValue(-0XFFFF);//vanne 1
-delay(500);
+delay(500);wdt_clr();
 cmd6.setPWMValue(-0XFFFF);//vanne 2
-delay(500);
+delay(500);wdt_clr();
 cmd7.setPWMValue(-0XFFFF);//vanne 3
-delay(500);
-//cmd4.setPWMValue(-0XFFFF);//pompe
-delay(500);
+delay(500);wdt_clr();
+cmd4.setPWMValue(-0XFFFF);//pompe
+delay(500);wdt_clr();
 cmd4.stop();delay(100);
 cmd5.stop();delay(100);
-cmd6.stop();delay(100);
+cmd6.stop();delay(100);wdt_clr();
 cmd7.stop();
-
+delay(500);wdt_clr();
+//}
 bip(BIP_MEDIUM_OK); 
     while (!nh.connected())
-    {
-    
+    {    
       nh.spinOnce();
       delay(50);
       status=(status==LOW)?HIGH:LOW;//toggle
       digitalWrite(LED_BOTTOM, status);
-      
+      wdt_clr();
     }
 
 if( !MyWireMotor.testLine( ))
@@ -774,10 +792,11 @@ void loop()
     loop_time();
     
     delay(5);
-
+if(nh.connected())
+    wdt_clr();
  nh.spinOnce();//<20µs
  //   delay(1);//less than 500Hz less ros serial server fail //for python version 50Hz
-    
+
 }
 
 

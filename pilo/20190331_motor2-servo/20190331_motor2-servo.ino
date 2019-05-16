@@ -9,9 +9,10 @@
 //        rosrun rosserial_python serial_node.py /dev/ttyS4 & 
 //        rosrun rosserial_python serial_node.py /dev/ttyS3   _baud:=57600 & 
 rosrun rosserial_python serial_node.py /dev/ttyS23   _baud:=57600 &
+rosrun rosserial_python serial_node.py /dev/ttyAMA0   _baud:=115200 &
 rostopic list
 rostopic info /servo/F
-rostopic pub servo/F std_msgs/UInt16 --once -- 80
+rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 80
 
 // rostopic pub motor2/A std_msgs/Int16 --once    10 
 // rostopic pub motor2/B std_msgs/Int16 --once    180
@@ -243,7 +244,7 @@ setupIntPriority();
 
 if(!( WireTest( WireMotor2, I2CADDR_MOTOR2_2) && WireTest( WireMotor2, I2CADDR_SERVO) && WireTest( WireMotor2, I2CADDR_MOTOR2_2)))
 {
-//assert(1==0);
+assert(1==0);
 };//skip if wire issue
 
 WireMotor2.begin();
@@ -358,6 +359,9 @@ card_servos.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
     
    uint8_t status=LOW;
 
+
+servo_cmdE.write(90);servo_cmdE.write(90);
+    
    //wait until you are actually connected
     while (!nh.connected())
     {
@@ -365,6 +369,7 @@ card_servos.setPWMFreq(60);  // Analog servos run at ~60 Hz updates
       delay(50);
           status=(status==LOW)?HIGH:LOW;//toggle
       digitalWrite(LED_BOTTOM, status);
+   //    nh.loginfo( "Pilo : connecting" );
   
     }
     

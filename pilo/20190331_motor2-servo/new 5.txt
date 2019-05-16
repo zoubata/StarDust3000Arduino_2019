@@ -1,0 +1,57 @@
+goldonium F130  E30
+	rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 130
+	rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 30
+
+prendregoldenium
+	rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 140
+	rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 10
+
+portergolden	
+	rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 100
+	rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 128
+
+reverve6 F80E70
+	rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 70
+	rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 80
+tirerMarcheArriere 30 30
+	rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 30
+	rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 30
+reverve6 F78E78
+	rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 78
+	rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 78
+porter  F148E88
+	rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 148
+	rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 88
+
+securité
+rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 170
+	
+
+
+rosrun rosserial_python serial_node.py /dev/ttyAMA0   _baud:=115200 &
+roslaunch sd_main r1.launch
+
+rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 80
+
+
+  296  rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 80
+  297  rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 40
+  298  rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 40
+  299  rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 70
+  300  rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 30
+  301  rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 70
+  302  rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 70
+  303  rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 88
+  304  rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 78
+  305  rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 75
+  306  rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 78
+  307  rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 128
+  308  rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 148
+  309  rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 78
+  310  rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 148
+  311  rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 148
+  312  rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 48
+  313  rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 78
+  314  rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 88
+  315  rostopic pub /r1/servo/E std_msgs/UInt16 --once -- 30
+  316  rostopic pub /r1/servo/F std_msgs/UInt16 --once -- 130

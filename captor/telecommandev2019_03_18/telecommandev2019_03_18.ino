@@ -323,7 +323,7 @@ digitalWrite(LED_TOP, LOW);
  
  
  int timetime=0;// refresh rate
-int time1=0;//load
+int time1=micros();//load
 int dmaxros=0;//max load
 char toggle=LOW;
 void loop_time()
