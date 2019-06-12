@@ -103,8 +103,8 @@ ros::NodeHandle  nh;
 
 #include <ZCmdMotor.h>
 #include <Zmotor3.h>
-#define MySerial P_COM0.serial2
-#define PcomSerial MySerial
+//#define MySerial P_COM0.serial2
+//#define PcomSerial MySerial
 /*
 
 https://www.youtube.com/watch?v=lujgeInpejY
@@ -373,7 +373,7 @@ digitalWrite(LED_TOP, toggle);
 
 // the setup function runs once when you press reset or power the board
 void setupCMD() {
-  MySerial.print("setup CMD \r\n");
+
 //  delay(500);
    cmd1.setPin(M1_CA, M1_CB, M1_MP, M1_MM,M1_EN);
  cmd2.setPin(M2_CA, M2_CB, M2_MP, M2_MM,M2_EN);
@@ -382,7 +382,7 @@ void setupCMD() {
   cmd2.setup();
   cmd3.setup();
   
-  MySerial.print("setup CMD end \r\n");
+
 //  delay(500);
   cmd1.getEncoder()->attachEncoderInt(privateIntHandler1);
   cmd2.getEncoder()->attachEncoderInt(privateIntHandler2);
@@ -432,15 +432,16 @@ if(!( WireTest( MyWireMotor, 0x22) && WireTest( MyWireMotor, 0x42)))
 return false;//skip if wire issue
 MyWireMotor.begin();
 	MyWireMotor.setClock(100000);
+/*
 if (0)
 {
-MySerial.begin(57600);  //115200 //9600
-	MySerial.println("Setup");
+if (MySerial!=0) MySerial.begin(57600);  //115200 //9600
+	if (MySerial!=0) MySerial.println("Setup");
 
 	volatile int ip = scan(MySerial, MyWireMotor);
 	while (ip = scanNext(MySerial, MyWireMotor) != 0);
 }
-
+*/
 	motorBoard.begin(&MyWireMotor, 0x22, 0x42);
 
 motorBoard.analogWriteResolution(12);
@@ -642,6 +643,9 @@ SUPC->BODVDD.bit.ACTION= SUPC_BODVDD_ACTION_RESET | SUPC_BODVDD_HYST |  SUPC_BOD
 SUPC->BODVDD.bit.ENABLE=1;
 
 nh.initNode(); 
+
+//nh.setSpinTimeout((256*700*10)/115200);//
+ 
    //wait until you are actually connected
    uint8_t status=LOW;
 setup_time();
@@ -666,8 +670,15 @@ setupIntPriority();
   pinMode(M4_EN, OUTPUT); digitalWrite(M4_EN, HIGH); 
 
 */
+
+/*
+int i=0;
+while(1)
+P_COM0.serial2.write(i++);
+*/
+
 wdt_clr();
-bool test=false;
+bool test=true;
 if (test)
   {
   cmd1.setPWMValue(0XFFFF);//vanne 1
@@ -707,6 +718,7 @@ delay(500);wdt_clr();
 }
 
 bip(BIP_MEDIUM_OK); 
+
     while (!nh.connected())
     {    
       nh.spinOnce();
@@ -803,12 +815,17 @@ void loop()
  */
     loop_time();
     
-    delay(5);
+    delay(1);
 
  int result=nh.spinOnce();//<20µs
  //PV assert(result==ros::SPIN_OK);
- // if((result==ros::SPIN_OK))
- if(nh.connected())
+ if((result==ros::SPIN_TIMEOUT))
+ {
+ assert(false);
+ // we should yflush()
+ }
+
+ //if(nh.connected())
     wdt_clr();
     
  //   delay(1);//less than 500Hz less ros serial server fail //for python version 50Hz
@@ -965,4 +982,4 @@ void loopDEBUGMOTOR() {
   */  
 
 }
-
+ 
