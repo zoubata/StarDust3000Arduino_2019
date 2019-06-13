@@ -1,0 +1,9 @@
+[submodule "dependency/libraries"]
+	path = dependency/libraries
+	url = https://github.com/zoubworldArduino/libraries.git
+[submodule "dependency/ArduinoCore-samd"]
+	path = dependency/ArduinoCore-samd
+	url = https://github.com/zoubata/ArduinoCore-samd.git
+[submodule "dependency/ArduinoModule-CMSIS-Atmel"]
+	path = dependency/ArduinoModule-CMSIS-Atmel
+	url = https://github.com/zoubata/ArduinoModule-CMSIS-Atmel.git
