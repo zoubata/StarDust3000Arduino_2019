@@ -16,7 +16,7 @@
  rostopic echo /1/counter 
 
  rostopic echo -p /2/counter
- /*
+
  rostopic pub /r1/pwm/left std_msgs/Int16 --once     500 & 
  rostopic pub /r1/pwm/right std_msgs/Int16 --once     800 & 
  rostopic pub /r1/pwm/back std_msgs/Int16 --once -- -800 &

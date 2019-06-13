@@ -1,4 +1,4 @@
-
+/*
 holonome(cmd123)
 setVxy(x,y,theta)
 setDxy(x,y,theta)
@@ -42,16 +42,16 @@ signed int d[NB_W_MAX]; //!< distance of wheel i
   ^
   |---.
   |    \
-  |     )90°
+  |     )90ï¿½
   |      \ 
   +---------> X
-  */
+  * /
 
  NbW=0;
   */
   /** a a wheel at corrodinate x,y,theta.
   
-  */
+  * /
 void addMotor(*cmdi,singed int xmm, signed int ymm, signed int thetaDegree, unsigned int diam,unsigned ind nbIncPerRound)
 {
   Wx[NbW]=xmm;
@@ -71,7 +71,7 @@ D=(x*x+y*y)^0.5
   v1=v2=v3 +=x*cos(teta-90)                           *Xi
            +=x*Xi
   Xi,Yi,Ti is float at fix point : /1024
-*/
+* /
 void precompute()
 {
   for(int i=0;i<NbW;i++)
@@ -86,10 +86,10 @@ void precompute()
   }
 }
 
-/** set the speed of robot : teta in nb tick for 360°
+/** set the speed of robot : teta in nb tick for 360ï¿½
 
 compute vi as int 
-*/
+* /
 void setVxyo(signed int  x,signed int y,signed int teta)
 {
   for(int i=0;i<NbW;i++)
@@ -103,9 +103,9 @@ void setVxyo(signed int  x,signed int y,signed int teta)
     cmd[i]->setPoint(v[i]);
   
 }
-/** set the distance of robot : teta in nb tick for 360°
+/** set the distance of robot : teta in nb tick for 360ï¿½
 compute di as int 
-*/
+* /
 void setDxyo(signed int x,signed int y,signed int teta)
 {
   for(int i=0;i<NbW;i++)
@@ -129,3 +129,4 @@ asser theta,d
 
 inertie=force=Mdv
 PWM=force
+*/
